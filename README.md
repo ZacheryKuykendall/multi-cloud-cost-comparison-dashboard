@@ -1,107 +1,180 @@
 # Cloud Marketplace Cost Comparator
 
-A modern web application that compares compute pricing across AWS, Azure, and GCP cloud providers. Built with FastAPI, React, and Docker.
+A modern web application that compares compute pricing across AWS, Azure, and GCP cloud providers. Built with FastAPI, React, and Docker, featuring OAuth2 authentication for each cloud provider.
 
 ## Features
 
-- Real-time price comparison for compute instances
-- Support for on-demand, spot, and reserved instance pricing
-- Interactive charts and visualizations using Recharts
-- Modern UI with Material-UI and dark mode support
-- Responsive design for all screen sizes
-- Redis caching for improved performance
-- Dockerized deployment for easy setup
+- **Multi-Cloud Authentication**
+  - AWS Cognito integration
+  - Azure AD organizational authentication
+  - Google Cloud OAuth2 support
+  - Secure session management
+
+- **Real-time Price Comparison**
+  - Compute instance pricing across all three major cloud providers
+  - Support for multiple pricing models:
+    - On-demand pricing
+    - Spot/Preemptible instances
+    - Reserved instances (1-year and 3-year terms)
+  - Region-specific pricing
+  - Instance type mapping across providers
+
+- **Modern UI/UX**
+  - Interactive charts using Recharts
+  - Material-UI components
+  - Dark/Light mode support
+  - Responsive design for all screen sizes
+  - Real-time price updates
+  - Subscription management for Azure
+
+- **Performance Features**
+  - Redis caching for improved response times
+  - Asynchronous API calls
+  - Docker containerization
+  - Nginx reverse proxy
 
 ## Prerequisites
 
 - Docker and Docker Compose
-- Cloud provider credentials:
-  - AWS: Access Key ID and Secret Access Key
-  - GCP: Project ID and API Key
-  - Azure: No credentials required for retail pricing API
+- Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
+- Cloud Provider Credentials:
+  - AWS Cognito User Pool
+  - Azure AD Application
+  - Google Cloud OAuth2 Client
 
-## Setup
+## Environment Setup
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/cloud-marketplace-cost-comparator.git
-   cd cloud-marketplace-cost-comparator
-   ```
+1. Create a `.env` file in the root directory with the following configurations:
 
-2. Create a `.env` file in the root directory with your cloud credentials:
-   ```env
-   AWS_ACCESS_KEY_ID=your_aws_access_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   GCP_PROJECT_ID=your_gcp_project_id
-   GCP_API_KEY=your_gcp_api_key
-   ```
+```env
+# AWS Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_COGNITO_CLIENT_ID=your_cognito_client_id
+AWS_COGNITO_CLIENT_SECRET=your_cognito_client_secret
+AWS_COGNITO_DOMAIN=your_cognito_domain
 
-3. Build and start the containers:
-   ```bash
-   docker-compose up --build
-   ```
+# Azure Configuration
+AZURE_CLIENT_ID=your_azure_client_id
+AZURE_CLIENT_SECRET=your_azure_client_secret
+AZURE_TENANT_ID=your_azure_tenant_id
 
-4. Access the application:
-   - Frontend: http://localhost
-   - Backend API docs: http://localhost:8000/docs
+# Google Cloud Configuration
+GCP_PROJECT_ID=your_gcp_project_id
+GCP_API_KEY=your_gcp_api_key
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-## Architecture
+# Application Security
+SECRET_KEY=your_secret_key_for_session_encryption
 
-### Backend (FastAPI)
+# Redis Configuration (optional)
+REDIS_URL=redis://redis:6379
+```
 
-- FastAPI for high-performance async API
-- Modular design with separate providers for each cloud
-- Redis caching for improved response times
-- Pydantic models for data validation
+## OAuth2 Setup Guide
 
-### Frontend (React)
+### AWS Cognito Setup
+1. Go to AWS Console > Cognito
+2. Create a new User Pool
+3. Add an app client with OAuth2 enabled
+4. Configure callback URL: `http://localhost:3000/api/v1/auth/aws/callback`
+5. Enable authorization code grant flow
+6. Copy credentials to `.env` file
 
-- React with TypeScript for type safety
-- Material-UI for consistent design
-- Recharts for interactive visualizations
-- Dark mode support
-- Responsive layout
+### Azure AD Setup
+1. Go to Azure Portal > Azure Active Directory
+2. Register a new application
+3. Add redirect URI: `http://localhost:3000/api/v1/auth/azure/callback`
+4. Create a client secret
+5. Grant admin consent for:
+   - `openid`
+   - `email`
+   - `profile`
+   - `https://management.azure.com/user_impersonation`
+6. Copy credentials to `.env` file
 
-### Infrastructure
+### Google Cloud Setup
+1. Go to Google Cloud Console > APIs & Services
+2. Create OAuth2 credentials
+3. Add authorized redirect URI: `http://localhost:3000/api/v1/auth/google/callback`
+4. Enable Cloud Billing API
+5. Copy credentials to `.env` file
 
-- Docker containers for all services
-- Redis for caching
-- Nginx for serving frontend and proxying API requests
-- Docker Compose for orchestration
+## Installation & Running
+
+### Using Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/ZacheryKuykendall/multi-cloud-cost-comparison-dashboard.git
+cd multi-cloud-cost-comparison-dashboard
+
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your credentials
+
+# Build and run with Docker Compose
+docker-compose up --build
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+### Local Development Setup
+
+#### Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+#### Frontend Setup
+```bash
+cd frontend
+npm install
+npm start
+```
 
 ## API Endpoints
 
-- `GET /api/v1/compute/prices`: Get compute prices across providers
-- `GET /api/v1/regions`: List available regions
-- `GET /api/v1/instance-types`: List available instance types
+### Authentication Endpoints
+- `GET /api/v1/auth/login/{provider}` - Initiate OAuth2 login
+- `GET /api/v1/auth/{provider}/callback` - OAuth2 callback handler
+- `GET /api/v1/auth/azure/subscriptions` - Get Azure subscriptions
 
-## Development
+### Pricing Endpoints
+- `GET /api/v1/compute/prices` - Get compute prices across providers
+- `GET /api/v1/regions` - List available regions
+- `GET /api/v1/instance-types` - List available instance types
 
-### Backend Development
+## Architecture
 
-1. Install Python dependencies:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+### Backend
+- FastAPI for high-performance async API
+- Redis caching layer
+- Provider-specific modules for AWS, Azure, and GCP
+- Session-based authentication
+- Pydantic models for validation
 
-2. Run the FastAPI server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+### Frontend
+- React with TypeScript
+- Material-UI components
+- Recharts for visualizations
+- Axios for API communication
+- Responsive layout system
 
-### Frontend Development
-
-1. Install Node.js dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. Start the development server:
-   ```bash
-   npm start
-   ```
+### Infrastructure
+- Docker containers for all services
+- Nginx reverse proxy
+- Redis for caching
+- Docker Compose orchestration
 
 ## Contributing
 
@@ -115,13 +188,6 @@ A modern web application that compares compute pricing across AWS, Azure, and GC
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## Support
 
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [React](https://reactjs.org/)
-- [Material-UI](https://mui.com/)
-- [Recharts](https://recharts.org/)
-- Cloud Provider Documentation:
-  - [AWS Pricing API](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/price-changes.html)
-  - [Azure Retail Prices API](https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices)
-  - [GCP Cloud Billing API](https://cloud.google.com/billing/docs/reference/rest) 
+For support, please open an issue in the GitHub repository. 
