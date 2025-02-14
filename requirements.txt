@@ -1,0 +1,12 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+redis==5.0.1
+boto3==1.34.34
+azure-mgmt-compute==30.4.0
+google-cloud-compute==1.15.0
+httpx==0.26.0
+python-dotenv==1.0.1
+pydantic==2.6.1
+python-jose[cryptography]==3.3.0
+authlib==1.3.0
+itsdangerous==2.1.2 
